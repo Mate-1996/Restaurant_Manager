@@ -4,13 +4,12 @@ import com.example.restaurant.dao.MenuItemDAO;
 import com.example.restaurant.entities.MenuItem;
 
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
-import jakarta.servlet.annotation.*;
-
 import java.io.IOException;
 import java.util.List;
 
-@WebServlet(name = "menuServlet", value = "/menu-servlet")
+@WebServlet(name = "MenuServlet", value = "/menu-servlet")
 public class MenuServlet extends HttpServlet {
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response)

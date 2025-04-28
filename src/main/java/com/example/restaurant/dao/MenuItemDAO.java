@@ -3,6 +3,7 @@ package com.example.restaurant.dao;
 import com.example.restaurant.entities.MenuItem;
 import com.example.restaurant.util.DatabaseConnection;
 import com.example.restaurant.interfaces.DatabaseOperations;
+import com.example.restaurant.exceptions.DatabaseConnectionException;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -12,27 +13,31 @@ public class MenuItemDAO implements DatabaseOperations<MenuItem> {
 
     @Override
     public void add(MenuItem item) {
-        // TODO: Add menu item to database
+        // Implementation for adding a menu item
     }
 
     @Override
     public void update(MenuItem item) {
-        // TODO: Update menu item in database
+        // Implementation for updating a menu item
     }
 
     @Override
     public void delete(int id) {
-        // TODO: Delete menu item from database
+        // Implementation for deleting a menu item
     }
 
     @Override
     public List<MenuItem> getAll() {
         List<MenuItem> items = new ArrayList<>();
         String sql = "SELECT item_id, name, description, price FROM Menu_Item";
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
 
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+        try {
+            conn = DatabaseConnection.getConnection();
+            stmt = conn.prepareStatement(sql);
+            rs = stmt.executeQuery();
 
             while (rs.next()) {
                 items.add(new MenuItem(
@@ -42,9 +47,17 @@ public class MenuItemDAO implements DatabaseOperations<MenuItem> {
                         rs.getDouble("price")
                 ));
             }
-
         } catch (Exception e) {
             e.printStackTrace();
+            System.err.println("Error retrieving menu items: " + e.getMessage());
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+                if (conn != null) DatabaseConnection.closeConnection(conn);
+            } catch (SQLException e) {
+                System.err.println("Error closing resources: " + e.getMessage());
+            }
         }
 
         return items;
