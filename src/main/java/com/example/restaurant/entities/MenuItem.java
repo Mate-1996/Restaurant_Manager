@@ -6,6 +6,7 @@ public class MenuItem {
     private String name;
     private String description;
     private double price;
+    private int quantity; // For order items
 
     public MenuItem() {}
 
@@ -14,6 +15,7 @@ public class MenuItem {
         this.name = name;
         this.description = description;
         this.price = price;
+        this.quantity = 1; // Default quantity
     }
 
     // Getters and Setters
@@ -29,4 +31,10 @@ public class MenuItem {
     public double getPrice() { return price; }
     public void setPrice(double price) { this.price = price; }
 
+    public int getQuantity() { return quantity; }
+    public void setQuantity(int quantity) { this.quantity = quantity; }
+
+    public double getSubtotal() {
+        return price * quantity;
+    }
 }

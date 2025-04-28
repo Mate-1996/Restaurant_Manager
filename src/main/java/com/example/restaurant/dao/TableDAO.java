@@ -1,32 +1,31 @@
 package com.example.restaurant.dao;
 
-import com.example.restaurant.entities.MenuItem;
+import com.example.restaurant.entities.Table;
 import com.example.restaurant.util.DatabaseConnection;
 import com.example.restaurant.interfaces.DatabaseOperations;
-import com.example.restaurant.exceptions.DatabaseConnectionException;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MenuItemDAO implements DatabaseOperations<MenuItem> {
+public class TableDAO implements DatabaseOperations<Table> {
 
     @Override
-    public void add(MenuItem item) {
-        String sql = "INSERT INTO Menu_Item (name, description, price) VALUES (?, ?, ?)";
+    public void add(Table table) {
+        String sql = "INSERT INTO Restaurant_Table (table_number, capacity, status) VALUES (?, ?, ?)";
         Connection conn = null;
         PreparedStatement stmt = null;
 
         try {
             conn = DatabaseConnection.getConnection();
             stmt = conn.prepareStatement(sql);
-            stmt.setString(1, item.getName());
-            stmt.setString(2, item.getDescription());
-            stmt.setDouble(3, item.getPrice());
+            stmt.setInt(1, table.getTableNumber());
+            stmt.setInt(2, table.getCapacity());
+            stmt.setString(3, table.getStatus());
             stmt.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();
-            System.err.println("Error adding menu item: " + e.getMessage());
+            System.err.println("Error adding table: " + e.getMessage());
         } finally {
             try {
                 if (stmt != null) stmt.close();
@@ -38,22 +37,21 @@ public class MenuItemDAO implements DatabaseOperations<MenuItem> {
     }
 
     @Override
-    public void update(MenuItem item) {
-        String sql = "UPDATE Menu_Item SET name = ?, description = ?, price = ? WHERE item_id = ?";
+    public void update(Table table) {
+        String sql = "UPDATE Restaurant_Table SET capacity = ?, status = ? WHERE table_number = ?";
         Connection conn = null;
         PreparedStatement stmt = null;
 
         try {
             conn = DatabaseConnection.getConnection();
             stmt = conn.prepareStatement(sql);
-            stmt.setString(1, item.getName());
-            stmt.setString(2, item.getDescription());
-            stmt.setDouble(3, item.getPrice());
-            stmt.setInt(4, item.getItemId());
+            stmt.setInt(1, table.getCapacity());
+            stmt.setString(2, table.getStatus());
+            stmt.setInt(3, table.getTableNumber());
             stmt.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();
-            System.err.println("Error updating menu item: " + e.getMessage());
+            System.err.println("Error updating table: " + e.getMessage());
         } finally {
             try {
                 if (stmt != null) stmt.close();
@@ -65,19 +63,19 @@ public class MenuItemDAO implements DatabaseOperations<MenuItem> {
     }
 
     @Override
-    public void delete(int id) {
-        String sql = "DELETE FROM Menu_Item WHERE item_id = ?";
+    public void delete(int tableNumber) {
+        String sql = "DELETE FROM Restaurant_Table WHERE table_number = ?";
         Connection conn = null;
         PreparedStatement stmt = null;
 
         try {
             conn = DatabaseConnection.getConnection();
             stmt = conn.prepareStatement(sql);
-            stmt.setInt(1, id);
+            stmt.setInt(1, tableNumber);
             stmt.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();
-            System.err.println("Error deleting menu item: " + e.getMessage());
+            System.err.println("Error deleting table: " + e.getMessage());
         } finally {
             try {
                 if (stmt != null) stmt.close();
@@ -89,9 +87,9 @@ public class MenuItemDAO implements DatabaseOperations<MenuItem> {
     }
 
     @Override
-    public List<MenuItem> getAll() {
-        List<MenuItem> items = new ArrayList<>();
-        String sql = "SELECT item_id, name, description, price FROM Menu_Item";
+    public List<Table> getAll() {
+        List<Table> tables = new ArrayList<>();
+        String sql = "SELECT table_number, capacity, status FROM Restaurant_Table";
         Connection conn = null;
         PreparedStatement stmt = null;
         ResultSet rs = null;
@@ -102,16 +100,15 @@ public class MenuItemDAO implements DatabaseOperations<MenuItem> {
             rs = stmt.executeQuery();
 
             while (rs.next()) {
-                items.add(new MenuItem(
-                        rs.getInt("item_id"),
-                        rs.getString("name"),
-                        rs.getString("description"),
-                        rs.getDouble("price")
+                tables.add(new Table(
+                        rs.getInt("table_number"),
+                        rs.getInt("capacity"),
+                        rs.getString("status")
                 ));
             }
         } catch (Exception e) {
             e.printStackTrace();
-            System.err.println("Error retrieving menu items: " + e.getMessage());
+            System.err.println("Error retrieving tables: " + e.getMessage());
         } finally {
             try {
                 if (rs != null) rs.close();
@@ -122,33 +119,32 @@ public class MenuItemDAO implements DatabaseOperations<MenuItem> {
             }
         }
 
-        return items;
+        return tables;
     }
 
-    public MenuItem getById(int id) {
-        String sql = "SELECT item_id, name, description, price FROM Menu_Item WHERE item_id = ?";
+    public Table getByNumber(int tableNumber) {
+        String sql = "SELECT table_number, capacity, status FROM Restaurant_Table WHERE table_number = ?";
         Connection conn = null;
         PreparedStatement stmt = null;
         ResultSet rs = null;
-        MenuItem item = null;
+        Table table = null;
 
         try {
             conn = DatabaseConnection.getConnection();
             stmt = conn.prepareStatement(sql);
-            stmt.setInt(1, id);
+            stmt.setInt(1, tableNumber);
             rs = stmt.executeQuery();
 
             if (rs.next()) {
-                item = new MenuItem(
-                        rs.getInt("item_id"),
-                        rs.getString("name"),
-                        rs.getString("description"),
-                        rs.getDouble("price")
+                table = new Table(
+                        rs.getInt("table_number"),
+                        rs.getInt("capacity"),
+                        rs.getString("status")
                 );
             }
         } catch (Exception e) {
             e.printStackTrace();
-            System.err.println("Error retrieving menu item: " + e.getMessage());
+            System.err.println("Error retrieving table: " + e.getMessage());
         } finally {
             try {
                 if (rs != null) rs.close();
@@ -159,8 +155,30 @@ public class MenuItemDAO implements DatabaseOperations<MenuItem> {
             }
         }
 
-        return item;
+        return table;
+    }
+
+    public void updateTableStatus(int tableNumber, String status) {
+        String sql = "UPDATE Restaurant_Table SET status = ? WHERE table_number = ?";
+        Connection conn = null;
+        PreparedStatement stmt = null;
+
+        try {
+            conn = DatabaseConnection.getConnection();
+            stmt = conn.prepareStatement(sql);
+            stmt.setString(1, status);
+            stmt.setInt(2, tableNumber);
+            stmt.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Error updating table status: " + e.getMessage());
+        } finally {
+            try {
+                if (stmt != null) stmt.close();
+                if (conn != null) DatabaseConnection.closeConnection(conn);
+            } catch (SQLException e) {
+                System.err.println("Error closing resources: " + e.getMessage());
+            }
+        }
     }
 }
-
-
