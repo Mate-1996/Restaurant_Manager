@@ -1,15 +1,14 @@
 package com.example.restaurant.entities;
 
-public class Chef extends Employee {
-    private String specialty;
+public class Chef extends User {
+    private String kitchenStation;
 
-    public Chef() {}
-
-    public Chef(int employeeId, String name, double salary, String specialty) {
-        super(employeeId, name, salary);
-        this.specialty = specialty;
+    public Chef(int userId, String name, String kitchenStation) {
+        super(userId, name, "Chef");
+        this.kitchenStation = kitchenStation;
     }
 
-    public String getSpecialty() { return specialty; }
-    public void setSpecialty(String specialty) { this.specialty = specialty; }
+    public String getKitchenStation() { return kitchenStation; }
+    public void setKitchenStation(String kitchenStation) { this.kitchenStation = kitchenStation; }
 }
+

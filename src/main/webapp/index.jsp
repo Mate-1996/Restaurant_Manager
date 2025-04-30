@@ -44,22 +44,26 @@
 <body>
 
 <div class="container">
-    <h1>🍽️ Welcome to Our Restaurant</h1>
+    <h1> Welcome to Our Restaurant</h1>
     <p>Enjoy fresh meals, cozy atmosphere, and easy online services!</p>
 
 
     <div class="section">
         <h2>For Customers</h2>
         <a href="menu-servlet" class="button">View Menu</a>
-        <a href="order.jsp" class="button">Place an Order</a>
-        <a href="reservation.jsp" class="button">Reserve a Table</a>
+        <a href="order-reservation-servlet" class="button">Order & Reserve Together</a>
+        <a href="reservation.jsp" class="button">Reserve a table</a>
+
     </div>
 
 
     <div class="section">
         <h2>For Admins</h2>
         <a href="admin-menu-servlet" class="button">Manage Menu Items</a>
+        <a href="admin-order-servlet" class="button">View All Orders</a>
+        <a href="login-test.jsp" class="button">Staff Login</a>
         <a href="table-servlet" class="button">Manage Tables</a>
+        <a href="create-user.jsp" class="button">Create Staff User</a>
     </div>
 </div>
 

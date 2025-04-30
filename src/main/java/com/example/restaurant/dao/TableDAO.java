@@ -158,6 +158,41 @@ public class TableDAO implements DatabaseOperations<Table> {
         return table;
     }
 
+    public List<Table> getAvailableTables() {
+        List<Table> tables = new ArrayList<>();
+        String sql = "SELECT table_number, capacity, status FROM Restaurant_Table WHERE status = 'Available'";
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+
+        try {
+            conn = DatabaseConnection.getConnection();
+            stmt = conn.prepareStatement(sql);
+            rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                tables.add(new Table(
+                        rs.getInt("table_number"),
+                        rs.getInt("capacity"),
+                        rs.getString("status")
+                ));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Error retrieving available tables: " + e.getMessage());
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+                if (conn != null) DatabaseConnection.closeConnection(conn);
+            } catch (SQLException e) {
+                System.err.println("Error closing resources: " + e.getMessage());
+            }
+        }
+
+        return tables;
+    }
+
     public void updateTableStatus(int tableNumber, String status) {
         String sql = "UPDATE Restaurant_Table SET status = ? WHERE table_number = ?";
         Connection conn = null;

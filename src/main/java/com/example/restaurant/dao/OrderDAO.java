@@ -36,14 +36,15 @@ public class OrderDAO {
         return orderId;
     }
 
-    public void addItemToOrder(int orderId, int itemId) {
-        String sql = "INSERT INTO Order_Item (order_id, item_id, quantity) VALUES (?, ?)";
+    public void addItemToOrder(int orderId, int itemId, int quantity) {
+        String sql = "INSERT INTO ORDER_ITEM (order_id, item_id, quantity) VALUES (?, ?, ?)";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, orderId);
             stmt.setInt(2, itemId);
+            stmt.setInt(3, quantity);
 
             stmt.executeUpdate();
 
@@ -51,6 +52,54 @@ public class OrderDAO {
             e.printStackTrace();
         }
     }
+
+    public List<Order> getAllOrdersWithItems() {
+        List<Order> orders = new ArrayList<>();
+
+        String orderSql = "SELECT * FROM ORDERS";
+        String itemSql = """
+        SELECT mi.name, mi.price, oi.quantity
+        FROM ORDER_ITEM oi
+        JOIN MENU_ITEM mi ON oi.item_id = mi.item_id
+        WHERE oi.order_id = ?
+    """;
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement orderStmt = conn.prepareStatement(orderSql);
+             ResultSet orderRs = orderStmt.executeQuery()) {
+
+            while (orderRs.next()) {
+                int orderId = orderRs.getInt("order_id");
+                int tableNumber = orderRs.getInt("table_number");
+
+                List<String> itemDisplayList = new ArrayList<>();
+                double totalPrice = 0.0;
+
+                try (PreparedStatement itemStmt = conn.prepareStatement(itemSql)) {
+                    itemStmt.setInt(1, orderId);
+                    ResultSet itemRs = itemStmt.executeQuery();
+
+                    while (itemRs.next()) {
+                        String name = itemRs.getString("name");
+                        double price = itemRs.getDouble("price");
+                        int quantity = itemRs.getInt("quantity");
+
+                        itemDisplayList.add(name + " x" + quantity);
+                        totalPrice += price * quantity;
+                    }
+                }
+
+                orders.add(new Order(orderId, tableNumber, itemDisplayList, totalPrice));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Error fetching orders: " + e.getMessage());
+        }
+
+        return orders;
+    }
+
 
     public List<Order> getAllOrders() {
         List<Order> orders = new ArrayList<>();

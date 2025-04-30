@@ -1,17 +1,16 @@
 package com.example.restaurant.entities;
 
-public class Waiter extends Employee {
-    private int numberOfTablesAssigned;
+import java.util.List;
 
-    public Waiter() {}
+public class Waiter extends User {
+    private List<Integer> assignedTables;
 
-    public Waiter(int employeeId, String name, double salary, int numberOfTablesAssigned) {
-        super(employeeId, name, salary);
-        this.numberOfTablesAssigned = numberOfTablesAssigned;
+    public Waiter(int userId, String name, List<Integer> assignedTables) {
+        super(userId, name, "Waiter");
+        this.assignedTables = assignedTables;
     }
 
-    public int getNumberOfTablesAssigned() { return numberOfTablesAssigned; }
-    public void setNumberOfTablesAssigned(int numberOfTablesAssigned) { this.numberOfTablesAssigned = numberOfTablesAssigned; }
-
-
+    public List<Integer> getAssignedTables() { return assignedTables; }
+    public void setAssignedTables(List<Integer> assignedTables) { this.assignedTables = assignedTables; }
 }
+
