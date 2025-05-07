@@ -1,59 +1,98 @@
 <%@ page import="java.util.List" %>
-<%@ page import="com.example.restaurant.entities.Order" %>
+<%@ page import="com.example.restaurant.entities.Reservation" %>
 
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>All Orders</title>
-  <link rel="stylesheet" href="css/style.css">
+  <title>Admin - Reservations Overview</title>
   <style>
-    body { font-family: Arial; background: #f4f4f4; }
-    .container { width: 80%; margin: 30px auto; background: white; padding: 20px; border-radius: 10px; }
-    h1 { text-align: center; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 12px; text-align: center; }
-    th { background-color: #3f51b5; color: white; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      width: 95%;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #ccc;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      padding: 12px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+    th {
+      background-color: #333;
+      color: white;
+    }
+    a.button {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: #3f51b5;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+    }
+    a.button:hover {
+      background: #303f9f;
+    }
   </style>
 </head>
 <body>
 <div class="container">
-  <h1>Customer Orders</h1>
+  <h1>Reservation Orders Overview</h1>
 
   <table>
     <thead>
     <tr>
-      <th>Order ID</th>
+      <th>Reservation ID</th>
+      <th>Customer Name</th>
       <th>Table Number</th>
-      <th>Items</th>
-      <th>Total Price ($)</th>
+      <th>Reservation Time</th>
+      <th>Ordered Items (with Quantities)</th>
+      <th>Created At</th>
     </tr>
     </thead>
     <tbody>
     <%
-      List<Order> orders = (List<Order>) request.getAttribute("orders");
-      if (orders != null && !orders.isEmpty()) {
-        for (Order order : orders) {
+      List<Reservation> reservations = (List<Reservation>) request.getAttribute("reservations");
+      if (reservations != null && !reservations.isEmpty()) {
+        for (Reservation r : reservations) {
     %>
     <tr>
-      <td><%= order.getOrderId() %></td>
-      <td><%= order.getTableNumber() %></td>
-      <td><%= String.join(", ", order.getItemNames()) %></td>
-      <td>$<%= String.format("%.2f", order.getTotalPrice()) %></td>
+      <td><%= r.getReservationId() %></td>
+      <td><%= r.getCustomerName() %></td>
+      <td><%= r.getTableNumber() %></td>
+      <td><%= r.getReservationTime() != null ? r.getReservationTime() : "-" %></td>
+      <td><%= r.getOrderSummary() != null ? r.getOrderSummary() : "None" %></td>
+      <td><%= r.getCreatedAt() != null ? r.getCreatedAt() : "-" %></td>
     </tr>
     <%
       }
     } else {
     %>
-    <tr><td colspan="4">No orders found.</td></tr>
+    <tr><td colspan="6">No reservation data available.</td></tr>
     <%
       }
     %>
     </tbody>
   </table>
 
-  <br>
-  <a href="index.jsp" class="button">Back to Home</a>
+  <a class="button" href="index.jsp">Back to Home</a>
 </div>
 </body>
 </html>

@@ -1,34 +1,66 @@
 package com.example.restaurant.dao;
 
-import com.example.restaurant.entities.Chef;
 import com.example.restaurant.entities.User;
-import com.example.restaurant.entities.Waiter;
+import com.example.restaurant.util.DatabaseConnection;
 
 import java.sql.*;
-import java.util.*;
-
-import com.example.restaurant.util.DatabaseConnection;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UserDAO {
 
-    public User getUserById(int userId) {
-        String sql = "SELECT * FROM Users WHERE user_id = ?";
+    public boolean userExists(String username) {
+        String sql = "SELECT COUNT(*) FROM Users WHERE username = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setInt(1, userId);
+            stmt.setString(1, username);
+            ResultSet rs = stmt.executeQuery();
+            return rs.next() && rs.getInt(1) > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean createUser(User user) {
+        String sql = "INSERT INTO Users (username, password, role) VALUES (?, ?, ?)";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, user.getUsername());
+            stmt.setString(2, user.getPassword()); // 🔐 hash in future
+            stmt.setString(3, user.getRole());
+
+            return stmt.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public User authenticate(String username, String password) {
+        String sql = "SELECT user_id, role FROM Users WHERE username = ? AND password = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, username);
+            stmt.setString(2, password);
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
-                String role = rs.getString("role");
-                String name = rs.getString("name");
-
-                if ("Waiter".equalsIgnoreCase(role)) {
-                    return getWaiterById(userId, name);
-                } else if ("Chef".equalsIgnoreCase(role)) {
-                    return getChefById(userId, name);
-                }
+                return new User(
+                        rs.getInt("user_id"),
+                        username,
+                        password,
+                        rs.getString("role")
+                );
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -36,58 +68,21 @@ public class UserDAO {
         return null;
     }
 
-    private Waiter getWaiterById(int userId, String name) {
-        List<Integer> tables = new ArrayList<>();
-        String sql = "SELECT table_number FROM Waiter_Tables WHERE user_id = ?";
-
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, userId);
-            ResultSet rs = stmt.executeQuery();
-
-            while (rs.next()) {
-                tables.add(rs.getInt("table_number"));
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return new Waiter(userId, name, tables);
-    }
-
-    private Chef getChefById(int userId, String name) {
-        String sql = "SELECT station FROM Chef_Stations WHERE user_id = ?";
-
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, userId);
-            ResultSet rs = stmt.executeQuery();
-
-            if (rs.next()) {
-                return new Chef(userId, name, rs.getString("station"));
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return new Chef(userId, name, "Unassigned");
-    }
-
     public List<User> getAllUsers() {
         List<User> users = new ArrayList<>();
-        String sql = "SELECT * FROM Users";
+        String sql = "SELECT * FROM Users ORDER BY user_id";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
-                int userId = rs.getInt("user_id");
-                users.add(getUserById(userId)); // re-use logic
+                users.add(new User(
+                        rs.getInt("user_id"),
+                        rs.getString("username"),
+                        rs.getString("password"),
+                        rs.getString("role")
+                ));
             }
 
         } catch (Exception e) {
@@ -97,3 +92,4 @@ public class UserDAO {
         return users;
     }
 }
+

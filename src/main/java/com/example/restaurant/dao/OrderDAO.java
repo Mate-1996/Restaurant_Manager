@@ -5,8 +5,10 @@ import com.example.restaurant.entities.Order;
 import com.example.restaurant.util.DatabaseConnection;
 
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class OrderDAO {
 
@@ -98,6 +100,71 @@ public class OrderDAO {
         }
 
         return orders;
+    }
+
+
+    public int createReservationWithItems(String customerName, int tableNumber,
+                                          LocalDateTime reservationTime,
+                                          Map<Integer, Integer> itemQuantities) {
+        String orderSummary = generateOrderSummary(itemQuantities);
+        String sql = "INSERT INTO Reservation (customer_name, table_number, reservation_time, order_summary) VALUES (?, ?, ?, ?)";
+        int reservationId = -1;
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, customerName);
+            stmt.setInt(2, tableNumber);
+            stmt.setTimestamp(3, Timestamp.valueOf(reservationTime));
+            stmt.setString(4, orderSummary);
+
+            int rows = stmt.executeUpdate();
+
+            if (rows > 0) {
+                try (PreparedStatement idStmt = conn.prepareStatement("SELECT reservation_seq.CURRVAL FROM dual");
+                     ResultSet rs = idStmt.executeQuery()) {
+                    if (rs.next()) {
+                        reservationId = rs.getInt(1);
+                    }
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return reservationId;
+    }
+
+    private String generateOrderSummary(Map<Integer, Integer> itemQuantities) {
+        StringBuilder summary = new StringBuilder();
+
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            for (Map.Entry<Integer, Integer> entry : itemQuantities.entrySet()) {
+                int itemId = entry.getKey();
+                int quantity = entry.getValue();
+
+                String sql = "SELECT name FROM MENU_ITEM WHERE item_id = ?";
+                try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                    stmt.setInt(1, itemId);
+                    ResultSet rs = stmt.executeQuery();
+                    if (rs.next()) {
+                        summary.append(rs.getString("name"))
+                                .append(" x").append(quantity)
+                                .append(", ");
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Remove trailing comma
+        if (summary.length() > 2) {
+            summary.setLength(summary.length() - 2);
+        }
+
+        return summary.toString();
     }
 
 

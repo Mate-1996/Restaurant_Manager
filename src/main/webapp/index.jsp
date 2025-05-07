@@ -1,3 +1,8 @@
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%
+    String username = (String) session.getAttribute("username");
+    String role = (String) session.getAttribute("role");
+%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -44,30 +49,37 @@
 <body>
 
 <div class="container">
-    <h1> Welcome to Our Restaurant</h1>
+    <h1>Welcome to Our Restaurant</h1>
     <p>Enjoy fresh meals, cozy atmosphere, and easy online services!</p>
-
 
     <div class="section">
         <h2>For Customers</h2>
         <a href="menu-servlet" class="button">View Menu</a>
         <a href="order-reservation-servlet" class="button">Order & Reserve Together</a>
         <a href="reservation.jsp" class="button">Reserve a table</a>
-
     </div>
 
-
+    <% if ("admin".equals(role)) { %>
     <div class="section">
-        <h2>For Admins</h2>
+        <h2>Admin Dashboard</h2>
         <a href="admin-menu-servlet" class="button">Manage Menu Items</a>
         <a href="admin-order-servlet" class="button">View All Orders</a>
-        <a href="login-test.jsp" class="button">Staff Login</a>
         <a href="table-servlet" class="button">Manage Tables</a>
         <a href="create-user.jsp" class="button">Create Staff User</a>
+        <a href="logout" class="button" style="background-color: #d32f2f;">Logout</a>
     </div>
+    <% } else { %>
+    <div class="section">
+        <h2>Staff Access</h2>
+        <a href="login.jsp" class="button">Staff Login</a>
+    </div>
+    <% } %>
+
 </div>
 
 </body>
 </html>
+
+
 
 

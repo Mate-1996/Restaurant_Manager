@@ -1,7 +1,7 @@
 package com.example.restaurant.servlets;
 
-import com.example.restaurant.dao.OrderDAO;
-import com.example.restaurant.entities.Order;
+import com.example.restaurant.dao.ReservationDAO;
+import com.example.restaurant.entities.Reservation;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -16,12 +16,12 @@ public class AdminOrderServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        OrderDAO dao = new OrderDAO();
-        List<Order> orders = dao.getAllOrdersWithItems();
+        ReservationDAO dao = new ReservationDAO();
+        List<Reservation> reservations = dao.getAllDetailedReservations();
 
-        request.setAttribute("orders", orders);
+
+        request.setAttribute("reservations", reservations);
         request.getRequestDispatcher("/admin-orders.jsp").forward(request, response);
     }
 }
-
 

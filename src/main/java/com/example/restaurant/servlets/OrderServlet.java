@@ -26,7 +26,7 @@ public class OrderServlet extends HttpServlet {
                 for (String itemIdStr : menuItemIds) {
                     int itemId = Integer.parseInt(itemIdStr);
 
-                    // Read quantity input like: quantity_3
+
                     String quantityParam = request.getParameter("quantity_" + itemIdStr);
                     int quantity = 1;
                     if (quantityParam != null && !quantityParam.isEmpty()) {

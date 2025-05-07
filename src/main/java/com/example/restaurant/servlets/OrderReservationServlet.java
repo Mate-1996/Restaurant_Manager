@@ -1,7 +1,11 @@
+
 package com.example.restaurant.servlets;
 
 import com.example.restaurant.dao.OrderDAO;
 import com.example.restaurant.dao.ReservationDAO;
+import com.example.restaurant.dao.TableDAO;
+import com.example.restaurant.dao.MenuItemDAO;
+import com.example.restaurant.entities.Order;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -10,20 +14,15 @@ import jakarta.servlet.http.*;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
 
 @WebServlet(name = "OrderReservationServlet", value = "/order-reservation-servlet")
 public class OrderReservationServlet extends HttpServlet {
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
-        com.example.restaurant.dao.MenuItemDAO menuDAO = new com.example.restaurant.dao.MenuItemDAO();
-        com.example.restaurant.dao.TableDAO tableDAO = new com.example.restaurant.dao.TableDAO();
-
-        request.setAttribute("menuItems", menuDAO.getAll());
-        request.setAttribute("tables", tableDAO.getAvailableTables());
-
-
+        populateRequestAttributes(request);
         request.getRequestDispatcher("/order-and-reserve.jsp").forward(request, response);
     }
 
@@ -38,58 +37,67 @@ public class OrderReservationServlet extends HttpServlet {
         if (customerName != null && tableNumberStr != null && reservationTimeStr != null) {
             try {
                 int tableNumber = Integer.parseInt(tableNumberStr);
-
-                // Parse datetime
                 LocalDateTime reservationTime = LocalDateTime.parse(reservationTimeStr);
 
-                // Save reservation
-                ReservationDAO reservationDAO = new ReservationDAO();
-                reservationDAO.createReservation(customerName, tableNumber, reservationTime);
+                Map<Integer, Integer> itemQuantities = new HashMap<>();
 
-                // Mark the table as Reserved
-                com.example.restaurant.dao.TableDAO tableDAO = new com.example.restaurant.dao.TableDAO();
-                tableDAO.updateTableStatus(tableNumber, "Reserved");
-
-
-                // Save order only if items were selected
                 if (menuItemIds != null && menuItemIds.length > 0) {
-                    OrderDAO orderDAO = new OrderDAO();
-                    int orderId = orderDAO.createOrder(tableNumber);
-
                     for (String itemIdStr : menuItemIds) {
                         int itemId = Integer.parseInt(itemIdStr);
-                        String quantityParam = request.getParameter("quantity_" + itemIdStr);
-                        int quantity = 1; // default if missing
-
-                        if (quantityParam != null && !quantityParam.isEmpty()) {
+                        String quantityStr = request.getParameter("quantity_" + itemIdStr);
+                        int quantity = 1;
+                        if (quantityStr != null && !quantityStr.isEmpty()) {
                             try {
-                                quantity = Integer.parseInt(quantityParam);
+                                quantity = Integer.parseInt(quantityStr);
                             } catch (NumberFormatException e) {
-                                quantity = 1; // fallback safely
+                                quantity = 1;
                             }
                         }
-
-                        orderDAO.addItemToOrder(orderId, itemId, quantity); // NEW: passes quantity
+                        itemQuantities.put(itemId, quantity);
                     }
+                }
 
+                // Create reservation with summary
+                OrderDAO dao = new OrderDAO();
+                int reservationId = dao.createReservationWithItems(customerName, tableNumber, reservationTime, itemQuantities);
+
+                // Update table status
+                TableDAO tableDAO = new TableDAO();
+                tableDAO.updateTableStatus(tableNumber, "Reserved");
+
+                if (reservationId > 0) {
                     request.setAttribute("message", "Reservation and Order placed successfully!");
+                    request.setAttribute("reservationSuccess", true);
+                    request.setAttribute("customerName", customerName);
+                    request.setAttribute("tableNumber", tableNumber);
+                    request.setAttribute("reservationTime", reservationTime);
                 } else {
-                    request.setAttribute("message", "Reservation placed successfully. No items were ordered.");
+                    request.setAttribute("message", "Reservation failed.");
+                    request.setAttribute("error", true);
                 }
 
             } catch (Exception e) {
                 e.printStackTrace();
                 request.setAttribute("message", "Error processing reservation/order: " + e.getMessage());
+                request.setAttribute("error", true);
             }
         } else {
             request.setAttribute("message", "Missing required fields.");
+            request.setAttribute("error", true);
         }
 
-        // Reload menu in case of message
-        com.example.restaurant.dao.MenuItemDAO dao = new com.example.restaurant.dao.MenuItemDAO();
-        request.setAttribute("menuItems", dao.getAll());
-
+        populateRequestAttributes(request);
         request.getRequestDispatcher("/order-and-reserve.jsp").forward(request, response);
+    }
+
+    private void populateRequestAttributes(HttpServletRequest request) {
+
+        MenuItemDAO menuDAO = new MenuItemDAO();
+        TableDAO tableDAO = new TableDAO();
+
+        request.setAttribute("menuItems", menuDAO.getAll());
+        request.setAttribute("tables", tableDAO.getAll());
+        request.setAttribute("availableTables", tableDAO.getAvailableTables());
     }
 }
 
